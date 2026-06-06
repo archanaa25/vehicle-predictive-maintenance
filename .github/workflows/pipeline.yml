@@ -1,61 +1,84 @@
-name: Vehicle Predictive Maintanence
+%%writefile .github/workflows/pipeline.yml
+name: MLOps Pipeline for Vehicle Predictive Maintenance
 
 on:
   push:
     branches:
-      - main  # Automatically triggers on push to the main branch
+      - main
+  workflow_dispatch:
 
 jobs:
-
-  register-dataset:
+  # Job to register data
+  register-data:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: pip install -r predictive_maintenance/requirements.txt
-      - name: Upload Dataset to Hugging Face Hub
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python predictive_maintenance/model_building/data_register.py
-
-  data-prep:
-    needs: register-dataset
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: pip install -r predictive_maintenance/requirements.txt
-      - name: Run Data Preparation
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python predictive_maintenance/model_building/prep.py
-
-
-  model-traning:
-    needs: data-prep
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: pip install -r predictive_maintenance/requirements.txt
-      - name: Start MLflow Server
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
         run: |
-          nohup mlflow ui --host 0.0.0.0 --port 5000 &  # Run MLflow UI in the background
-          sleep 5  # Wait for a moment to let the server starts
-      - name: Model Building
+          pip install -r predictive_maintenance/deployment/requirements.txt
+      - name: Run data registration script
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python predictive_maintenance/model_building/train.py
+        run: |
+          python predictive_maintenance/model_building/data_register.py
 
-
-  deploy-hosting:
+  # Job for data preparation
+  data-prep:
+    needs: register-data # Depends on data-registration job
     runs-on: ubuntu-latest
-    needs: [model-traning,data-prep,register-dataset]
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: pip install -r predictive_maintenance/requirements.txt
-      - name: Push files to Frontend Hugging Face Space
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          pip install -r predictive_maintenance/deployment/requirements.txt
+      - name: Run data preparation script
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python predictive_maintenance/hosting/hosting.py
+        run: |
+          python predictive_maintenance/model_building/prep.py
+
+  # Job for model training and registration
+  model-training:
+    needs: data-prep # Depends on data-prep job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          pip install -r predictive_maintenance/deployment/requirements.txt
+      - name: Run model training script
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python predictive_maintenance/model_building/train.py
+
+  # Job for deployment hosting
+  hosting:
+    needs: model-training # Depends on model-training job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          pip install -r predictive_maintenance/deployment/requirements.txt
+      - name: Run hosting script
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python predictive_maintenance/hosting/hosting.py
