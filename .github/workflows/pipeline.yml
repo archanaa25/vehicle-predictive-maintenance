@@ -1,4 +1,4 @@
-%%writefile .github/workflows/pipeline.yml
+
 name: MLOps Pipeline for Vehicle Predictive Maintenance
 
 on:
@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job to register data
   register-data:
     runs-on: ubuntu-latest
     steps:
@@ -26,9 +25,8 @@ jobs:
         run: |
           python predictive_maintenance/model_building/data_register.py
 
-  # Job for data preparation
   data-prep:
-    needs: register-data # Depends on data-registration job
+    needs: register-data
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,9 +43,8 @@ jobs:
         run: |
           python predictive_maintenance/model_building/prep.py
 
-  # Job for model training and registration
   model-training:
-    needs: data-prep # Depends on data-prep job
+    needs: data-prep
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,9 +61,8 @@ jobs:
         run: |
           python predictive_maintenance/model_building/train.py
 
-  # Job for deployment hosting
   hosting:
-    needs: model-training # Depends on model-training job
+    needs: model-training
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
