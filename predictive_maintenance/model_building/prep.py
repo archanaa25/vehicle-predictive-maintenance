@@ -6,14 +6,11 @@ import os
 # for data preprocessing and pipeline creation
 from sklearn.model_selection import train_test_split
 # for hugging face space authentication to upload files
-from huggingface_hub import login, HfApi
+from huggingface_hub import HfApi
 
-# Authenticate with HuggingFace (required for hf:// paths in pandas)
-hf_token = os.getenv("HF_TOKEN")
-login(token=hf_token)
 
 # Define constants for the dataset and output paths
-api = HfApi(token=hf_token)
+api = HfApi(token=os.getenv("HF_TOKEN"))
 DATASET_PATH = "hf://datasets/arss25/VehiclePreditiveMaintanence/engine_data.csv"
 vehicle_dataset = pd.read_csv(DATASET_PATH)
 print("Dataset loaded successfully.")

@@ -12,20 +12,15 @@ import joblib
 import json
 
 # for hugging face space authentication to upload files
-from huggingface_hub import HfApi, create_repo, login
+from huggingface_hub import HfApi, create_repo
 from huggingface_hub.utils import RepositoryNotFoundError
 import mlflow
 from imblearn.over_sampling import SMOTE
 
-# Authenticate with HuggingFace (required for hf:// paths in pandas)
-hf_token = os.getenv("HF_TOKEN")
-if not hf_token:
-    raise ValueError("HF_TOKEN environment variable not set.")
-login(token=hf_token)
 
 # MLflow tracking configuration
-mlflow.set_tracking_uri("http://localhost:5000")
-mlflow.set_experiment("mlops-project")
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "./mlruns"))
+mlflow.set_experiment("Vehicle_PredictiveMaintenance")
 
 # Helper function to evaluate model performance
 def model_performance_classification_sklearn(model, predictors, target):
@@ -118,7 +113,7 @@ with mlflow.start_run() as run:
         json.dump(meta, f, indent=2)
     print("Metadata:", json.dumps(meta, indent=2))
 
-    api = HfApi(token=hf_token)
+    api = HfApi(token=os.getenv("HF_TOKEN"))
     model_repo_id = "arss25/VehiclePredictiveMaintenance-Model"
 
     try:
