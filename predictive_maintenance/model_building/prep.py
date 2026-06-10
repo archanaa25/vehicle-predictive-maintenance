@@ -14,7 +14,7 @@ login(token=hf_token)
 
 # Define constants for the dataset and output paths
 api = HfApi(token=hf_token)
-DATASET_PATH = "hf://datasets/arss25/VehiclePreditiveMaintanence/engine.csv"
+DATASET_PATH = "hf://datasets/arss25/VehiclePreditiveMaintanence/engine_data.csv"
 vehicle_dataset = pd.read_csv(DATASET_PATH)
 print("Dataset loaded successfully.")
 
