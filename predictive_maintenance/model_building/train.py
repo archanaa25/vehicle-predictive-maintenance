@@ -24,8 +24,8 @@ if not hf_token:
 login(token=hf_token)
 
 # MLflow tracking configuration
-mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "file:///content/mlruns"))
-mlflow.set_experiment("Vehicle_PredictiveMaintenance")
+mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_experiment("mlops-project")
 
 # Helper function to evaluate model performance
 def model_performance_classification_sklearn(model, predictors, target):
